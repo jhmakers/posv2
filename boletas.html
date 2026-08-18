@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Boletas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  font-family: Arial;
+  background:#0c1020;
+  color:#fff;
+  padding:20px;
+}
+
+h1{
+  text-align:center;
+}
+
+.box{
+  max-width:500px;
+  margin:auto;
+  background:#1e293b;
+  padding:20px;
+  border-radius:10px;
+}
+
+
+input{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:6px;
+  border:none;
+}
+
+
+.isla{
+  background: linear-gradient(135deg, #1e40af, #0f172a);
+  padding:5px; /* 👈 más pegado */
+  border-radius:12px;
+}
+
+
+/* Ajuste boton carrito solo movil */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    width:auto !important;
+    min-width:48px !important;
+    height:40px !important;
+    padding:6px 10px !important;
+    border-radius:12px !important;
+    font-size:18px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:3px !important;
+    z-index:900 !important;
+}
+
+/* contador compacto */
+#toggleCarritoBtn .cart-count,
+.cart-count,
+#cartCount,
+.contador-carrito{
+    font-size:11px !important;
+    min-width:16px !important;
+    height:16px !important;
+    line-height:16px !important;
+    border-radius:8px !important;
+    padding:0 3px !important;
+}
+
+/* cuando el carrito esta abierto no debe tapar el panel */
+.carrito.abierto ~ #toggleCarritoBtn,
+body:has(.carrito.abierto) #toggleCarritoBtn{
+    opacity:0.7;
+}
+
+}
+
+
+/* Boton carrito siempre accesible cuando el panel esta abierto */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    position:fixed !important;
+    right:16px !important;
+    bottom:75px !important;
+    z-index:9999 !important;
+}
+
+.carrito{
+    z-index:5000 !important;
+}
+
+/* mantener el boton por encima del panel */
+body.carrito-abierto #toggleCarritoBtn{
+    display:flex !important;
+    opacity:1 !important;
+}
+
+}
+
+
+/* Carrito movil: panel por encima del boton sin transparencia */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    z-index:1000 !important;
+}
+
+/* Panel del carrito tapa el boton cuando esta abierto */
+.carrito.abierto,
+.carrito.active,
+.carrito{
+    z-index:9999 !important;
+}
+
+/* Sin cambios de opacidad */
+body.carrito-abierto #toggleCarritoBtn{
+    opacity:1 !important;
+}
+
+}
+
+
+/* Reubicacion boton carrito movil */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    position:fixed !important;
+    top:18px !important;
+    right:14px !important;
+    bottom:auto !important;
+    z-index:3000 !important;
+}
+
+/* Mantener el carrito desplegado encima sin tapar el boton */
+.carrito,
+.carrito.abierto,
+.carrito.active{
+    z-index:9000 !important;
+}
+
+}
+
+
+/* Posicion final boton carrito movil */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    position:fixed !important;
+    right:12px !important;
+    bottom:90px !important;
+    top:auto !important;
+    z-index:3000 !important;
+}
+
+}
+
+
+/* Ajuste adicional posicion boton carrito movil */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    bottom:55px !important;
+}
+
+}
+
+
+/* Boton carrito mas abajo en movil */
+@media(max-width:768px){
+
+#toggleCarritoBtn{
+    bottom:20px !important;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="loginBoletas" class="box">
+  <h2>🔐 Acceso a Boletas</h2>
+  <input type="password" id="passBoletas" placeholder="Ingrese contraseña">
+  <button onclick="verificarAcceso()">Ingresar</button>
+</div>
+
+
+<div id="contenidoBoletas" style="display:none;">
+
+  <button onclick="cerrarSesion()" 
+
+    style="position:fixed;top:15px;right:15px;background:#dc3545;color:#fff;border:none;padding:10px 12px;border-radius:8px;z-index:1000;">
+    🔓
+  </button>
+  <button onclick="irHistorial()" 
+  style="position:fixed;top:60px;right:15px;background:#2563eb;color:#fff;border:none;padding:10px;border-radius:8px;z-index:1000;">
+  📊
+</button>
+  <button onclick="irPOS()" 
+  style="position:fixed;top:105px;right:15px;background:#16a34a;color:#fff;border:none;padding:10px;border-radius:8px;z-index:1000;">
+  🛒
+</button>
+
+  <h1>🧾 Generador de Boletas</h1>
+
+  <div class="box">
+
+  <h3>👤 Datos del cliente</h3>
+
+  <input id="clienteNombre" placeholder="Nombre completo">
+  <input id="clienteDni" placeholder="DNI">
+  <input id="clienteDireccion" placeholder="Dirección">
+  <input id="clienteCelular" placeholder="Celular">
+
+  <button onclick="generarBoleta()">🧾 Generar Boleta</button>
+
+
+</div>
+
+<div id="boletaResultado" class="box" style="margin-top:20px; display:none;"></div>
+<div id="accionesBoleta" style="display:none; margin-top:10px;">
+  <button onclick="imprimirBoleta()">🖨️ Imprimir Boleta</button>
+  <button onclick="descargarImagen()">🖼️ Descargar Imagen</button>
+  <button onclick="descargarPDF()">📄 Descargar PDF</button>
+  <button onclick="nuevaVenta()">🛒 Nueva venta</button>
+</div>
+</div>
+
+
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+
+
+  let nombreTienda = "";
+let logoTienda = "";
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYjGgEc599if7hQG7Qd2wF7-vlSynBDNU",
+  authDomain: "jhmaker-6b092.firebaseapp.com",
+  projectId: "jhmaker-6b092",
+  storageBucket: "jhmaker-6b092.firebasestorage.app",
+  messagingSenderId: "231063273884",
+  appId: "1:231063273884:web:e163c609fbdefe46ff8859"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let adminPassword = "1234";
+let generandoBoleta = false;
+
+// 🔑 cargar contraseña desde Firebase
+async function cargarPassword(){
+  try{
+    const doc = await db.collection("config").doc("admin").get();
+    if(doc.exists && doc.data().password){
+      adminPassword = doc.data().password;
+    }
+  }catch(err){
+    console.error(err);
+  }
+}
+
+// 🔐 verificar acceso
+async function verificarAcceso(){
+  const input = document.getElementById("passBoletas").value.trim();
+
+  if(input === adminPassword){
+    localStorage.setItem("adminAuth","ok"); // 🔥 guardar sesión
+    document.getElementById("loginBoletas").style.display = "none";
+    document.getElementById("contenidoBoletas").style.display = "block";
+  } else {
+    alert("❌ Contraseña incorrecta");
+  }
+}
+
+// 🔄 mantener sesión al recargar
+function verificarSesion(){
+  if(localStorage.getItem("adminAuth") === "ok"){
+    document.getElementById("loginBoletas").style.display = "none";
+    document.getElementById("contenidoBoletas").style.display = "block";
+  }
+}
+
+// 🚀 iniciar
+document.addEventListener("DOMContentLoaded", async () => {
+  await cargarPassword();
+  await cargarDatosTienda(); // 👈 ESTA LÍNEA FALTABA
+  verificarSesion();
+});
+
+function cerrarSesion(){
+  localStorage.removeItem("adminAuth");
+  location.reload();
+}
+
+
+async function generarBoleta(){
+
+  if(generandoBoleta) return;
+
+  const nombre = document.getElementById("clienteNombre").value.trim();
+  const dni = document.getElementById("clienteDni").value.trim();
+  const direccion = document.getElementById("clienteDireccion").value.trim();
+  const celular = document.getElementById("clienteCelular").value.trim();
+
+  const clienteFinal = nombre || "Cliente General";
+  const dniFinal = dni || "-";
+
+  // 🛒 obtener carrito
+  let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+  if(carrito.length === 0){
+    alert("El carrito está vacío");
+    return;
+  }
+
+  generandoBoleta = true;
+  let numeroFormateado;
+  try{
+    numeroFormateado = await obtenerNumeroBoleta();
+  }catch(e){
+    console.error("No se pudo obtener correlativo", e);
+    generandoBoleta = false;
+    alert("No se pudo generar el número de boleta");
+    return;
+  }
+
+  let total = 0;
+
+  let filas = carrito.map(item => {
+    const sub = item.p * item.cantidad;
+    total += sub;
+
+    return `
+      <tr>
+        <td>${item.n}</td>
+        <td>${item.codigo}</td>
+        <td>S/. ${item.p.toFixed(2)}</td>
+        <td>${item.cantidad}</td>
+        <td>S/. ${sub.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join("");
+
+  // 📅 fecha actual
+ const fecha = new Date().toLocaleDateString('es-PE', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+}) + ' ' + new Date().toLocaleTimeString();
+
+
+
+// guardar siguiente número
+
+const html = `
+<div id="boletaPDF" style="
+  background:#fff;
+  color:#000;
+  padding:15px;
+  border-radius:8px;
+  font-size:13px;
+  width:260px;
+  margin:auto;
+  font-family:Arial;
+">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:8px;">
+
+    <!-- IZQUIERDA: LOGO + NOMBRE -->
+    <div style="display:flex; align-items:center; gap:10px;">
+      
+      ${logoTienda ? `
+        <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #000;">
+          <img src="${logoTienda}" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+      ` : ""}
+
+      <div style="font-size:14px; font-weight:bold;">
+        ${nombreTienda}
+      </div>
+
+    </div>
+
+    <!-- DERECHA: BOLETA + NUMERO -->
+    <div style="text-align:right;">
+      <div style="font-size:13px; font-weight:bold;">
+        🧾 Boleta de Venta
+      </div>
+      <div style="font-size:11px;">
+        Nº ${numeroFormateado}
+      </div>
+    </div>
+
+  </div>
+    <p><b>Fecha:</b> ${fecha}</p>
+
+    <hr>
+
+    <p><b>Cliente:</b> ${clienteFinal}</p>
+    <p><b>DNI:</b> ${dniFinal}</p>
+    <p><b>Dirección:</b> ${direccion || '-'}</p>
+    <p><b>Celular:</b> ${celular || '-'}</p>
+
+    <hr>
+
+    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+      <thead>
+        <tr>
+          <th style="border-bottom:1px solid #000;">Prod</th>
+          <th style="border-bottom:1px solid #000;">Cod</th>
+          <th style="border-bottom:1px solid #000;">P</th>
+          <th style="border-bottom:1px solid #000;">C</th>
+          <th style="border-bottom:1px solid #000;">Sub</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filas}
+      </tbody>
+    </table>
+
+    <hr>
+
+   <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;">
+  <span>TOTAL</span>
+  <span>S/. ${total.toFixed(2)}</span>
+</div>
+
+    <p style="text-align:center; font-size:10px;">Gracias por su compra</p>
+
+  </div>
+  
+`;
+
+  const cont = document.getElementById("boletaResultado");
+  cont.innerHTML = html;
+  cont.style.display = "block";
+  document.getElementById("accionesBoleta").style.display = "block";
+
+
+try{
+  await db.collection("boletas").doc(numeroFormateado).set({
+    numero: numeroFormateado,
+    cliente: clienteFinal,
+    dni: dniFinal,
+    direccion: direccion,
+    celular: celular,
+    fecha: new Date(),
+    timestamp: Date.now(),
+    total: total,
+    productos: carrito,
+    estado: "activo",
+    html: html
+  });
+
+  
+  // Guardar historial local para calendario de ventas
+  try{
+    let ventas = JSON.parse(localStorage.getItem("ventasDia") || "[]");
+    ventas.push({
+      id: "V-" + Date.now(),
+      numero: numeroFormateado,
+      fecha: new Date().toISOString(),
+      productos: JSON.parse(JSON.stringify(carrito)),
+      total: total,
+      descuento: carrito.reduce((a,b)=>a+((b.descuentoAplicado||0)*b.cantidad),0)
+    });
+    localStorage.setItem("ventasDia", JSON.stringify(ventas));
+  }catch(e){
+    console.error("No se pudo guardar historial", e);
+  }
+
+console.log("Boleta guardada ✅");
+  localStorage.setItem("carrito", "[]");
+  generandoBoleta = false;
+  alert(`✅ Boleta ${numeroFormateado} guardada correctamente`);
+
+}catch(e){
+  console.error("Error al guardar ❌", e);
+  generandoBoleta = false;
+  alert("Error al guardar la boleta");
+}
+}
+
+
+
+function imprimirBoleta(){
+  const contenido = document.getElementById("boletaResultado").innerHTML;
+  const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const paddingTicket = esMovil ? "2mm 1mm 3mm 1mm" : "3mm 4mm 3mm 3mm";
+  const ventana = window.open("", "_blank", "width=400,height=700");
+
+  if(!ventana){
+    alert("El navegador bloqueó la ventana de impresión. Habilita las ventanas emergentes para imprimir.");
+    return;
+  }
+
+  ventana.document.write(`
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title></title>
+      <style id="ticketPageStyle">
+        /* Papel térmico de 80 mm. La altura exacta se coloca antes de imprimir. */
+        @page { size: 80mm 200mm; margin: 0; }
+
+        html, body{
+          margin:0 !important;
+          padding:0 !important;
+          width:80mm !important;
+          background:#fff !important;
+          color:#000 !important;
+          font-family:Arial, sans-serif;
+        }
+
+        /* Este es el elemento real que contiene la boleta. */
+        #boletaPDF{
+          width:80mm !important;
+          max-width:80mm !important;
+          margin:0 !important;
+          /* En celular se aprovecha casi todo el ancho para Printer A; en PC se conserva el margen de seguridad actual. */
+          padding:${paddingTicket} !important;
+          box-sizing:border-box !important;
+          border-radius:0 !important;
+          background:#fff !important;
+          color:#000 !important;
+          box-shadow:none !important;
+          font-size:12px !important;
+          overflow:visible !important;
+        }
+
+        #boletaPDF table{
+          width:100% !important;
+          max-width:100% !important;
+          border-collapse:collapse !important;
+          table-layout:fixed;
+          font-size:11px !important;
+        }
+
+        #boletaPDF th,
+        #boletaPDF td{
+          padding:2px 1px !important;
+          overflow-wrap:anywhere;
+          word-break:break-word;
+        }
+
+        #boletaPDF img{
+          max-width:100% !important;
+        }
+
+        button{ display:none !important; }
+
+        @media print{
+          html, body{
+            margin:0 !important;
+            padding:0 !important;
+            width:80mm !important;
+          }
+
+          #boletaPDF{
+            break-inside:avoid-page;
+            page-break-inside:avoid;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      ${contenido}
+      <script>
+        window.onload = function(){
+          var ticket = document.getElementById("boletaPDF");
+          if(!ticket) return;
+
+          /* CSS usa 96 px por pulgada: convertimos el alto real a mm. */
+          var altoPx = Math.max(ticket.scrollHeight, ticket.getBoundingClientRect().height);
+          var altoMm = Math.ceil((altoPx * 25.4 / 96) + 2);
+
+          /* Una sola página de 80 mm de ancho y exactamente el alto de la boleta. */
+          var pageStyle = document.getElementById("ticketPageStyle");
+          pageStyle.textContent += "\\n@page { size: 80mm " + altoMm + "mm; margin: 0 !important; }";
+
+          /* Espera un instante para que Chrome aplique el tamaño de papel calculado. */
+          setTimeout(function(){
+            window.focus();
+            window.print();
+          }, 120);
+        };
+      <\/script>
+    </body>
+    </html>`);
+
+  ventana.document.close();
+}
+function descargarImagen(){
+  const boleta = document.getElementById("boletaResultado");
+
+  html2canvas(boleta).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "boleta.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
+
+function descargarPDF(){
+  const { jsPDF } = window.jspdf;
+  const boleta = document.getElementById("boletaResultado");
+
+  html2canvas(boleta).then(canvas => {
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const imgWidth = 190;
+    const pageHeight = 297;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+
+    let y = 10;
+
+    pdf.addImage(imgData, "PNG", 10, y, imgWidth, imgHeight);
+    pdf.save("boleta.pdf");
+  });
+}
+
+
+async function cargarDatosTienda(){
+  try{
+    const doc = await db.collection("config").doc("tienda").get();
+
+    if(doc.exists){
+      const data = doc.data();
+
+      // 🔥 detecta automáticamente los nombres de campos
+      nombreTienda = data.nombre || data.storeName || "Mi Tienda";
+      logoTienda = data.logo || data.storeLogo || "";
+    }
+
+  }catch(e){
+    console.error(e);
+  }
+
+  console.log("Boleta enviada a Firebase");
+}
+
+function irHistorial(){
+  window.location.href = "historial.html";
+}
+
+function irPOS(){
+  window.location.href = "index.html";
+}
+
+function nuevaVenta(){
+  window.location.href = "index.html";
+}
+
+async function obtenerNumeroBoleta(){
+  const ref = db.collection("config").doc("contadorBoletas");
+
+  const numero = await db.runTransaction(async transaction => {
+    const doc = await transaction.get(ref);
+    const actual = doc.exists ? Number(doc.data().valor || 0) : 0;
+    const siguiente = actual + 1;
+    transaction.set(ref, { valor: siguiente }, { merge: true });
+    return siguiente;
+  });
+
+  return "B-" + numero.toString().padStart(5,"0");
+}
+
+
+</script>
+</body>
+</html>
